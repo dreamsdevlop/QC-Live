@@ -24,6 +24,7 @@ export default function Layout({ children }: LayoutProps) {
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/videos', label: 'Videos' },
     { href: '/streams', label: 'Streams' },
+    { href: '/channels', label: 'Channels' },
   ];
 
   return (

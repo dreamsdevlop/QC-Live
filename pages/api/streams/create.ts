@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { requireAuth } from '@/lib/authMiddleware';
 import { getDb, logActivity } from '@/lib/database';
+import { getChannelDestination, isSupabaseChannelsConfigured } from '@/lib/supabaseChannels';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   return requireAuth(req, res, async (req, res) => {
@@ -8,7 +9,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { name, videoId, rtmpUrl, quality, loopEnabled } = req.body;
+    const { name, videoId, rtmpUrl: requestedRtmpUrl, channelId, quality, loopEnabled } = req.body;
+
+    let rtmpUrl = requestedRtmpUrl;
+    if (channelId) {
+      if (!isSupabaseChannelsConfigured()) return res.status(503).json({ error: 'Saved channel linking is not configured' });
+      rtmpUrl = await getChannelDestination((req as any).session.user.username, channelId);
+    }
 
     if (!name || !videoId || !rtmpUrl) {
       return res.status(400).json({ error: 'Missing required fields' });

@@ -7,15 +7,24 @@ interface Video {
   original_name: string;
 }
 
+interface Channel {
+  id: string;
+  display_name: string;
+  platform: string;
+  ingest_url: string;
+}
+
 interface StreamFormProps {
   onSuccess: () => void;
 }
 
 export default function StreamForm({ onSuccess }: StreamFormProps) {
   const [videos, setVideos] = useState<Video[]>([]);
+  const [channels, setChannels] = useState<Channel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [platform, setPlatform] = useState<'youtube' | 'custom'>('youtube');
   const [streamKey, setStreamKey] = useState('');
+  const [channelId, setChannelId] = useState('');
   const [useBackup, setUseBackup] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -27,6 +36,7 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
 
   useEffect(() => {
     fetchVideos();
+    fetchChannels();
   }, []);
 
   useEffect(() => {
@@ -47,6 +57,15 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
     }
   };
 
+  const fetchChannels = async () => {
+    try {
+      const response = await axios.get('/api/channels');
+      setChannels(response.data.channels || []);
+    } catch {
+      // Channel linking is optional; manual RTMP creation remains available.
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -55,12 +74,12 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
       return;
     }
 
-    if (platform === 'youtube' && !streamKey) {
+    if (!channelId && platform === 'youtube' && !streamKey) {
       toast.error('Please enter your YouTube stream key');
       return;
     }
 
-    if (!formData.rtmpUrl) {
+    if (!channelId && !formData.rtmpUrl) {
       toast.error('Please provide an RTMP URL');
       return;
     }
@@ -68,7 +87,7 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
     setIsLoading(true);
 
     try {
-      await axios.post('/api/streams/create', formData);
+      await axios.post('/api/streams/create', { ...formData, channelId: channelId || undefined });
       toast.success('Stream created! You can start it from the stream list.');
       setFormData({
         name: '',
@@ -78,6 +97,7 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
         loopEnabled: true,
       });
       setStreamKey('');
+      setChannelId('');
       setPlatform('youtube');
       setUseBackup(false);
       onSuccess();
@@ -124,6 +144,17 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
           ))}
         </select>
       </div>
+
+      {channels.length > 0 && (
+        <div>
+          <label htmlFor="channel" className="block text-sm font-medium text-foreground mb-1">Use saved channel (recommended)</label>
+          <select id="channel" value={channelId} onChange={(e) => setChannelId(e.target.value)} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground">
+            <option value="">Enter a destination manually</option>
+            {channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.display_name} · {channel.platform}</option>)}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">The encrypted channel secret stays on the server; it is never sent to this page.</p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-foreground mb-1">

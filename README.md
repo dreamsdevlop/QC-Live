@@ -12,6 +12,14 @@ A powerful, self-hosted streaming application that enables 24/7 live streaming t
 - 🎯 **Stream Quality Options** - Choose between 720p (2 Mbps) or 1080p (3.5 Mbps)
 - 🛡️ **Secure Authentication** - Protected admin access
 - 📱 **Responsive Design** - Works on desktop and mobile devices
+
+## Supabase channel connections
+
+QC Live includes an optional Supabase-backed channel vault for YouTube Live, Twitch, Facebook Live, and any RTMP-compatible destination. The application authenticates the operator with its existing protected session, stores only an encrypted stream key in Supabase, and never returns the key to the browser. The migration is in `supabase/migrations/20260911235000_qc_live_channel_connections.sql`.
+
+To enable it, apply that migration to your Supabase project and set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and a strong `CHANNEL_ENCRYPTION_SECRET` in the server environment. The configured project is in the `ap-northeast-1` region. The service-role key must remain server-side and must not be placed in any `NEXT_PUBLIC_*` variable.
+
+The **Channels** page lets an operator save a destination, and the stream form can use a saved channel without exposing its secret. Provider OAuth is intentionally not faked: YouTube, Twitch, and Meta require separately registered client applications, redirect URLs, scopes, and platform review where applicable. Manual RTMP connections work immediately; OAuth adapters can be added once those provider credentials are supplied.
 ## System Requirements
 
 - Node.js 18+ 
@@ -112,6 +120,8 @@ docker-compose up -d
 ```
 
 ## Production Deployment
+
+For true 24/7 operation, run the app and FFmpeg worker on a persistent Linux host or an always-on container service, with `restart: unless-stopped`, persistent `./data` and `./public/uploads` volumes, and enough outbound bandwidth for every destination. A 3.5 Mbps 1080p stream consumes approximately 3.5 Mbps per platform plus overhead; multiple platforms multiply both bandwidth and FFmpeg CPU usage. Add process supervision and monitoring before treating the service as production-grade.
 
 ### Using PM2
 
