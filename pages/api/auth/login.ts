@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getSession, validateCredentials } from '@/lib/auth';
 import { logActivity } from '@/lib/database';
+import { isSupabaseAuthConfigured, signInWithSupabase } from '@/lib/supabaseAuth';
 
 export default async function loginRoute(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -13,7 +14,20 @@ export default async function loginRoute(req: NextApiRequest, res: NextApiRespon
     return res.status(400).json({ error: 'Username and password are required' });
   }
 
-  const isValid = await validateCredentials(username, password);
+  let isValid = await validateCredentials(username, password);
+  let authenticatedUsername = username;
+
+  // Keep the original admin account working, while allowing Supabase Auth users
+  // to sign in with their email address once Auth is configured.
+  if (!isValid && isSupabaseAuthConfigured() && String(username).includes('@')) {
+    try {
+      const result = await signInWithSupabase(String(username).trim().toLowerCase(), password);
+      isValid = Boolean(result.access_token);
+      authenticatedUsername = result.user?.email || String(username).trim().toLowerCase();
+    } catch {
+      isValid = false;
+    }
+  }
 
   if (!isValid) {
     await logActivity('login_failed', `Failed login attempt for username: ${username}`);
@@ -23,7 +37,7 @@ export default async function loginRoute(req: NextApiRequest, res: NextApiRespon
   const session = await getSession(req, res);
   session.user = {
     isLoggedIn: true,
-    username,
+    username: authenticatedUsername,
   };
 
   await session.save();

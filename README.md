@@ -228,6 +228,12 @@ GitHub: [https://github.com/himanshu-hivecorp](https://github.com/himanshu-hivec
 
 © 2024 QC Live. All rights reserved.
 
+## Account signup and channel linking
+
+Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a 32-character `CHANNEL_ENCRYPTION_SECRET` in Vercel. Enable Email provider in Supabase Auth. Open `/auth/signup`, create an account with an email and password, confirm the email if Supabase requires confirmation, and then sign in at `/auth/login`. Open **Channels**, choose YouTube, Twitch, Facebook, or Custom RTMP, paste the provider's official ingest URL and stream key, and save the connection. QC-Live encrypts the secret on the server; it is not returned to the browser. The stream form then lets you select one or more saved channels.
+
+The current channel screen uses manual RTMP credentials. It does not ask QC-Live for a provider password. For YouTube, Twitch, and Facebook, create or open the live stream in the provider dashboard, copy the official server/ingest URL and stream key, and paste them into QC-Live. OAuth channel linking can be added later when provider client IDs and redirect URLs are configured.
+
 ## Cloudflare Workers free-plan control plane
 
 QC-Live now includes a free-plan-compatible Cloudflare Worker control plane under `cloudflare/`. The deployed health endpoint is:

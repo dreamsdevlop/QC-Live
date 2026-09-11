@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function LoginPage() {
                 autoComplete="username"
                 required
                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder-muted-foreground text-foreground rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm bg-input"
-                placeholder="Username"
+                placeholder="Email or admin username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
@@ -80,6 +81,9 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
+          <p className="text-sm text-center text-muted-foreground">
+            New to QC Live? <Link href="/auth/signup" className="text-primary hover:underline">Create an account</Link>
+          </p>
         </form>
       </div>
       
