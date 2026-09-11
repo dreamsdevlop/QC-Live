@@ -8,6 +8,23 @@
 - [ ] Adequate upload bandwidth (3-5 Mbps per stream)
 - [ ] SSL certificate configured (for HTTPS)
 
+## Vercel deployment
+
+Vercel is suitable for the QC Live web dashboard and short-lived API requests, but it is not suitable for the FFmpeg process, large persistent video uploads, SQLite, or a 24/7 stream worker. Deploy the dashboard from `dreamsdevlop/QC-Live` as a Next.js project and configure these server-side environment variables in Vercel:
+
+```env
+SESSION_SECRET=<32-or-more-random-characters>
+AUTH_USERNAME=<admin-login>
+AUTH_PASSWORD=<bcrypt-hash>
+SUPABASE_URL=https://rirngdknrszxkgdjcrcv.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<server-only-key>
+CHANNEL_ENCRYPTION_SECRET=<32-or-more-random-characters>
+```
+
+For production, run the existing Node.js/FFmpeg application as a persistent worker with durable `data/` and `public/uploads/` storage, automatic restart, and outbound bandwidth for every simultaneous platform. Keep the Vercel dashboard and worker behind the same protected domain or add a server-side worker API URL before exposing remote stream controls.
+
+Do not deploy `SUPABASE_SERVICE_ROLE_KEY` as a public environment variable. Do not expect Vercel serverless functions to keep FFmpeg alive after a request finishes.
+
 ## Quick Deployment
 
 ### 1. Clone and Setup
