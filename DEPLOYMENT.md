@@ -12,7 +12,7 @@
 
 Vercel is suitable for the QC Live web dashboard and short-lived API requests, but it is not suitable for the FFmpeg process, large persistent video uploads, SQLite, or a 24/7 stream worker. Deploy the dashboard from `dreamsdevlop/QC-Live` as a Next.js project and configure these server-side environment variables in Vercel:
 
-The repository pins Vercel builds to Node 18 and removes the unused `better-sqlite3` package that fails to compile on Vercel's newer Node 24 builder. Pushes to `main` should deploy the current commit; if the Vercel dashboard still shows an older commit, trigger a redeploy from the latest GitHub commit rather than redeploying the old deployment.
+The repository pins Vercel builds to Node 24, which is the runtime currently required by the Vercel builder, and removes the unused `better-sqlite3` package that previously failed to compile. Pushes to `main` should deploy the current commit; if the Vercel dashboard still shows an older commit, trigger a redeploy from the latest GitHub commit rather than redeploying the old deployment.
 
 ```env
 SESSION_SECRET=<32-or-more-random-characters>
