@@ -227,3 +227,26 @@ GitHub: [https://github.com/himanshu-hivecorp](https://github.com/himanshu-hivec
 ---
 
 © 2024 QC Live. All rights reserved.
+
+## Cloudflare Workers free-plan control plane
+
+QC-Live now includes a free-plan-compatible Cloudflare Worker control plane under `cloudflare/`. The deployed health endpoint is:
+
+`https://qc-live-control.haseebsarkarg.workers.dev/health`
+
+The Worker is intentionally limited to lightweight control requests and health checks. It does not run FFmpeg, download large videos, or provide 24/7 broadcasting. Those operations remain on the persistent media worker. This avoids paid Cloudflare features and respects Workers execution limits.
+
+To deploy updates with Wrangler:
+
+```bash
+cd cloudflare
+npx wrangler deploy
+```
+
+Keep any control token as a Worker secret:
+
+```bash
+npx wrangler secret put CONTROL_TOKEN
+```
+
+Do not put Supabase service-role keys or stream keys in Worker source code. Use Supabase for Auth/database, R2 only if separately enabled, and the persistent worker for FFmpeg and `yt-dlp`.

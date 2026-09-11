@@ -1,0 +1,10 @@
+name = "qc-live-control"
+main = "src/index.js"
+compatibility_date = "2026-09-12"
+workers_dev = true
+
+# Free-plan compatible: no paid Durable Objects, Queues, Workflows, R2, or Stream bindings.
+# Add these as encrypted Worker secrets only when a persistent media worker exists:
+# wrangler secret put CONTROL_TOKEN
+# wrangler secret put MEDIA_WORKER_URL
+# wrangler secret put MEDIA_WORKER_TOKEN
