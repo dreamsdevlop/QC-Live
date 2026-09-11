@@ -31,8 +31,9 @@ ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
-# Install ffmpeg
-RUN apk add --no-cache ffmpeg
+# Install FFmpeg and the public-video importer runtime.
+RUN apk add --no-cache ffmpeg python3 py3-pip \
+  && pip3 install --no-cache-dir --break-system-packages yt-dlp
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

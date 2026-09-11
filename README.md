@@ -7,6 +7,7 @@ A powerful, self-hosted streaming application that enables 24/7 live streaming t
 - 🎥 **24/7 Live Streaming** - Stream videos continuously with automatic looping
 - 📺 **Multi-Platform Support** - Stream to YouTube, Twitch, Facebook, or any RTMP server
 - 🎬 **Video Management** - Upload, organize, and manage your video library
+- 🔗 **Public Video Import** - Import one permitted public video URL into the library
 - 📊 **Real-time Statistics** - Monitor stream health, bitrate, FPS, and quality
 - 🔄 **Multiple Concurrent Streams** - Run multiple streams simultaneously
 - 🎛️ **Multi-Platform Orchestration** - Fan one video out to selected YouTube, Twitch, and Facebook channels
@@ -23,6 +24,8 @@ To enable it, apply that migration to your Supabase project and set `SUPABASE_UR
 The **Channels** page lets an operator save a destination, and the stream form can use a saved channel without exposing its secret. Provider OAuth is intentionally not faked: YouTube, Twitch, and Meta require separately registered client applications, redirect URLs, scopes, and platform review where applicable. Manual RTMP connections work immediately; OAuth adapters can be added once those provider credentials are supplied.
 
 When multiple linked channels are selected during stream creation, QC Live creates one independent FFmpeg worker per destination. A failure on YouTube does not stop Twitch or Facebook, and each generated stream can be stopped independently from the stream list. The orchestration endpoint is `/api/streams/orchestrate`. For 24/7 operation, run this endpoint on the persistent worker rather than Vercel serverless hosting.
+
+The Video Library also supports importing one public video URL at a time. The worker uses `yt-dlp` with playlist downloads disabled, a size limit, and local/private URL blocking, then stores the result like an uploaded video and generates a thumbnail. Use only content you own or are authorized to download and rebroadcast. The importer does not bypass private access, DRM, paywalls, or other restrictions. Vercel should host the dashboard only; the importer requires the persistent worker with `yt-dlp`, FFmpeg, durable storage, and sufficient disk space.
 ## System Requirements
 
 - Node.js 18+ 
