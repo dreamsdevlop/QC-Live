@@ -2,5 +2,10 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
+  "build": {
+    "env": {
+      "NODE_VERSION": "18.x"
+    }
+  },
   "regions": ["hnd1"]
 }

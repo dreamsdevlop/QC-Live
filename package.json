@@ -8,6 +8,9 @@
     "url": "https://github.com/himanshu-hivecorp"
   },
   "private": true,
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -25,7 +28,6 @@
   "dependencies": {
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^9.2.2",
     "clsx": "^2.0.0",
     "dayjs": "^1.11.10",
     "fluent-ffmpeg": "^2.1.2",
