@@ -24,7 +24,7 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [platform, setPlatform] = useState<'youtube' | 'custom'>('youtube');
   const [streamKey, setStreamKey] = useState('');
-  const [channelId, setChannelId] = useState('');
+  const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
   const [useBackup, setUseBackup] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -74,12 +74,12 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
       return;
     }
 
-    if (!channelId && platform === 'youtube' && !streamKey) {
+    if (selectedChannelIds.length === 0 && platform === 'youtube' && !streamKey) {
       toast.error('Please enter your YouTube stream key');
       return;
     }
 
-    if (!channelId && !formData.rtmpUrl) {
+    if (selectedChannelIds.length === 0 && !formData.rtmpUrl) {
       toast.error('Please provide an RTMP URL');
       return;
     }
@@ -87,8 +87,15 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
     setIsLoading(true);
 
     try {
-      await axios.post('/api/streams/create', { ...formData, channelId: channelId || undefined });
-      toast.success('Stream created! You can start it from the stream list.');
+      if (selectedChannelIds.length > 0) {
+        const response = await axios.post('/api/streams/orchestrate', { ...formData, channelIds: selectedChannelIds });
+        const started = response.data.results.filter((result: { status: string }) => result.status === 'started').length;
+        const failed = response.data.results.length - started;
+        toast.success(`Started ${started} platform${started === 1 ? '' : 's'}${failed ? `; ${failed} failed` : ''}`);
+      } else {
+        await axios.post('/api/streams/create', { ...formData });
+        toast.success('Stream created! You can start it from the stream list.');
+      }
       setFormData({
         name: '',
         videoId: '',
@@ -97,7 +104,7 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
         loopEnabled: true,
       });
       setStreamKey('');
-      setChannelId('');
+      setSelectedChannelIds([]);
       setPlatform('youtube');
       setUseBackup(false);
       onSuccess();
@@ -147,12 +154,21 @@ export default function StreamForm({ onSuccess }: StreamFormProps) {
 
       {channels.length > 0 && (
         <div>
-          <label htmlFor="channel" className="block text-sm font-medium text-foreground mb-1">Use saved channel (recommended)</label>
-          <select id="channel" value={channelId} onChange={(e) => setChannelId(e.target.value)} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground">
-            <option value="">Enter a destination manually</option>
-            {channels.map((channel) => <option key={channel.id} value={channel.id}>{channel.display_name} · {channel.platform}</option>)}
-          </select>
-          <p className="mt-1 text-xs text-muted-foreground">The encrypted channel secret stays on the server; it is never sent to this page.</p>
+          <span className="block text-sm font-medium text-foreground mb-1">Stream to linked channels</span>
+          <div className="space-y-2 rounded-md border border-border p-3">
+            {channels.map((channel) => (
+              <label key={channel.id} className="flex items-center gap-3 text-sm text-foreground">
+                <input
+                  type="checkbox"
+                  checked={selectedChannelIds.includes(channel.id)}
+                  onChange={(event) => setSelectedChannelIds((current) => event.target.checked ? [...current, channel.id] : current.filter((id) => id !== channel.id))}
+                  className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
+                />
+                <span>{channel.display_name} <span className="text-muted-foreground">· {channel.platform}</span></span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">Select multiple channels to fan out one video. Each destination runs independently; encrypted secrets stay on the server.</p>
         </div>
       )}
 

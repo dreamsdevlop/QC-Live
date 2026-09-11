@@ -43,8 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Create stream record (not started)
       const result = await db.run(
-        'INSERT INTO streams (name, video_id, rtmp_url, quality, loop_enabled, status) VALUES (?, ?, ?, ?, ?, ?)',
-        [name, videoId, rtmpUrl, quality || '720p', loopEnabled ? 1 : 0, 'stopped']
+        'INSERT INTO streams (name, video_id, channel_id, rtmp_url, quality, loop_enabled, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [name, videoId, channelId || null, rtmpUrl, quality || '720p', loopEnabled ? 1 : 0, 'stopped']
       );
 
       await logActivity('stream_created', `Stream "${name}" created`);

@@ -38,6 +38,7 @@ export async function getDb() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
       video_id INTEGER REFERENCES videos(id),
+      channel_id TEXT,
       rtmp_url TEXT NOT NULL,
       quality TEXT DEFAULT '720p',
       loop_enabled BOOLEAN DEFAULT 1,
@@ -56,11 +57,16 @@ export async function getDb() {
     );
   `);
 
-  // Add updated_at column if it doesn't exist
-  try {
-    await db.run(`ALTER TABLE streams ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`);
-  } catch (e) {
-    // Column already exists, ignore error
+  // Backward-compatible columns for databases created by older QC Live versions.
+  for (const statement of [
+    `ALTER TABLE streams ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
+    `ALTER TABLE streams ADD COLUMN channel_id TEXT`,
+  ]) {
+    try {
+      await db.run(statement);
+    } catch {
+      // Column already exists.
+    }
   }
 
   return db;

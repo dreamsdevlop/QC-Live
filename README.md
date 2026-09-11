@@ -9,6 +9,7 @@ A powerful, self-hosted streaming application that enables 24/7 live streaming t
 - 🎬 **Video Management** - Upload, organize, and manage your video library
 - 📊 **Real-time Statistics** - Monitor stream health, bitrate, FPS, and quality
 - 🔄 **Multiple Concurrent Streams** - Run multiple streams simultaneously
+- 🎛️ **Multi-Platform Orchestration** - Fan one video out to selected YouTube, Twitch, and Facebook channels
 - 🎯 **Stream Quality Options** - Choose between 720p (2 Mbps) or 1080p (3.5 Mbps)
 - 🛡️ **Secure Authentication** - Protected admin access
 - 📱 **Responsive Design** - Works on desktop and mobile devices
@@ -20,6 +21,8 @@ QC Live includes an optional Supabase-backed channel vault for YouTube Live, Twi
 To enable it, apply that migration to your Supabase project and set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and a strong `CHANNEL_ENCRYPTION_SECRET` in the server environment. The configured project is in the `ap-northeast-1` region. The service-role key must remain server-side and must not be placed in any `NEXT_PUBLIC_*` variable.
 
 The **Channels** page lets an operator save a destination, and the stream form can use a saved channel without exposing its secret. Provider OAuth is intentionally not faked: YouTube, Twitch, and Meta require separately registered client applications, redirect URLs, scopes, and platform review where applicable. Manual RTMP connections work immediately; OAuth adapters can be added once those provider credentials are supplied.
+
+When multiple linked channels are selected during stream creation, QC Live creates one independent FFmpeg worker per destination. A failure on YouTube does not stop Twitch or Facebook, and each generated stream can be stopped independently from the stream list. The orchestration endpoint is `/api/streams/orchestrate`. For 24/7 operation, run this endpoint on the persistent worker rather than Vercel serverless hosting.
 ## System Requirements
 
 - Node.js 18+ 
