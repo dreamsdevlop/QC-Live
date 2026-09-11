@@ -104,6 +104,37 @@ export async function createChannelConnection(ownerKey: string, input: {
   return (rows as ChannelConnection[])[0];
 }
 
+export async function createOAuthChannelConnection(ownerKey: string, ownerId: string | null, input: {
+  platform: ChannelPlatform;
+  displayName: string;
+  accountName?: string;
+  accountId?: string;
+  ingestUrl: string;
+  streamKey: string;
+  accessToken: string;
+  refreshToken?: string | null;
+}) {
+  const rows = await supabaseRequest('qc_live_channel_connections', {
+    method: 'POST',
+    body: JSON.stringify({
+      owner_key: ownerKey,
+      owner_id: ownerId,
+      platform: input.platform,
+      display_name: input.displayName,
+      account_name: input.accountName || null,
+      account_id: input.accountId || null,
+      ingest_url: input.ingestUrl.replace(/\/$/, ''),
+      encrypted_stream_key: encryptChannelSecret(input.streamKey),
+      encrypted_access_token: encryptChannelSecret(input.accessToken),
+      encrypted_refresh_token: input.refreshToken ? encryptChannelSecret(input.refreshToken) : null,
+      oauth_provider: input.platform,
+      oauth_account_id: input.accountId || null,
+      auth_mode: 'oauth',
+    }),
+  });
+  return (rows as ChannelConnection[])[0];
+}
+
 export async function deleteChannelConnection(ownerKey: string, id: string) {
   const query = new URLSearchParams({ owner_key: `eq.${ownerKey}`, id: `eq.${id}` });
   await supabaseRequest(`qc_live_channel_connections?${query.toString()}`, { method: 'DELETE' });

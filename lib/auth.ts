@@ -9,6 +9,11 @@ export interface SessionData {
     isLoggedIn: boolean;
     username: string;
   };
+  oauth?: {
+    state: string;
+    platform: 'youtube' | 'twitch' | 'facebook';
+    createdAt: number;
+  };
 }
 
 export const sessionOptions: SessionOptions = {

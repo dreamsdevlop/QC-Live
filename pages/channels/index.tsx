@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Layout from '@/components/Layout';
@@ -22,6 +23,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 }
 
 export default function ChannelsPage() {
+  const router = useRouter();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -33,6 +35,10 @@ export default function ChannelsPage() {
     finally { setLoading(false); }
   };
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (router.query.oauth === 'success') toast.success('Channel linked automatically');
+    if (router.query.oauth === 'error') toast.error(String(router.query.message || 'OAuth channel linking failed'));
+  }, [router.query.oauth, router.query.message]);
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault(); setSaving(true);
@@ -63,7 +69,14 @@ export default function ChannelsPage() {
           <input required placeholder="rtmps://provider.example/live" value={form.ingestUrl} onChange={e => setForm({ ...form, ingestUrl: e.target.value })} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground" />
           <input required type="password" autoComplete="new-password" placeholder="Stream key / ingest secret" value={form.streamKey} onChange={e => setForm({ ...form, streamKey: e.target.value })} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground" />
           <button disabled={saving} className="w-full py-2 rounded-md bg-primary text-primary-foreground disabled:opacity-50">{saving ? 'Encrypting…' : 'Save connection'}</button>
-          <p className="text-xs text-muted-foreground">Provider OAuth can be added when provider client IDs and callback URLs are configured. Manual keys work immediately with any RTMP-compatible platform.</p>
+          <div className="border-t border-border pt-4 space-y-2">
+            <p className="text-sm font-medium">Or connect automatically</p>
+            <p className="text-xs text-muted-foreground">You will authorize the provider directly. QC Live never asks for your provider password.</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['youtube', 'twitch', 'facebook'] as const).map(platform => <a key={platform} href={`/api/channels/oauth/start?platform=${platform}`} className="text-center px-2 py-2 rounded-md border border-border text-xs hover:bg-muted">{platform === 'youtube' ? 'YouTube' : platform === 'twitch' ? 'Twitch' : 'Facebook'}</a>)}
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Manual keys work immediately with any RTMP-compatible platform. OAuth requires each provider's developer app credentials and may require platform review.</p>
         </form>
         <section className="lg:col-span-3 bg-card border border-border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">Saved channels</h2>
