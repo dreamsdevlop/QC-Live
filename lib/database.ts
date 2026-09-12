@@ -44,6 +44,7 @@ export async function getDb() {
       loop_enabled BOOLEAN DEFAULT 1,
       status TEXT DEFAULT 'stopped',
       pid INTEGER,
+      worker_job_id TEXT,
       started_at DATETIME,
       error_message TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -61,6 +62,7 @@ export async function getDb() {
   for (const statement of [
     `ALTER TABLE streams ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`,
     `ALTER TABLE streams ADD COLUMN channel_id TEXT`,
+    `ALTER TABLE streams ADD COLUMN worker_job_id TEXT`,
   ]) {
     try {
       await db.run(statement);

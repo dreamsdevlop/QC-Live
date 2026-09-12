@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/authMiddleware';
 import { getDb } from '@/lib/database';
 import { getActiveStreams } from '@/lib/ffmpeg';
 import { getAllActiveStreams } from '@/lib/stream-manager';
+import { getMediaJobStatus, isMediaWorkerConfigured } from '@/lib/mediaWorker';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   return requireAuth(req, res, async (req, res) => {
@@ -12,6 +13,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const db = await getDb();
+      if (isMediaWorkerConfigured()) {
+        const workerStreams = await db.all('SELECT id, worker_job_id FROM streams WHERE worker_job_id IS NOT NULL AND status NOT IN (?, ?)', ['stopped', 'error']);
+        for (const workerStream of workerStreams) {
+          try {
+            const job = await getMediaJobStatus(String(workerStream.worker_job_id));
+            const status = job.status === 'completed' ? 'stopped' : job.status === 'failed' ? 'error' : job.status === 'cancelled' ? 'stopped' : job.status === 'running' ? 'running' : 'starting';
+            const error = job.lastError || (job.destinationRuns || []).find((run: any) => run.lastError)?.lastError || null;
+            await db.run('UPDATE streams SET status = ?, error_message = ? WHERE id = ?', [status, error, workerStream.id]);
+          } catch (error) {
+            console.error(`Worker status sync failed for stream ${workerStream.id}:`, error);
+          }
+        }
+        return res.status(200).json({ success: true, message: 'Media-worker stream status synchronized' });
+      }
       const activeStreamIds = getActiveStreams();
       const globalActiveStreams = getAllActiveStreams();
       

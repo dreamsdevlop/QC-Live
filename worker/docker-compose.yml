@@ -1,0 +1,58 @@
+services:
+  pyrunner:
+    build: .
+    container_name: pyrunner
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      # Persist database and environments
+      - pyrunner_data:/app/data
+      # Persist or share source media with the worker
+      - pyrunner_media:/app/media
+    environment:
+      # Required - container will fail to start if not set.
+      # Generate with the commands shown in .env.example
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - MEDIA_WORKER_TOKEN=${MEDIA_WORKER_TOKEN:-}
+      - MEDIA_WORKER_ID=${MEDIA_WORKER_ID:-worker-01}
+      - MEDIA_WORKER_CAPACITY=${MEDIA_WORKER_CAPACITY:-1}
+      - MEDIA_MAX_DESTINATIONS=${MEDIA_MAX_DESTINATIONS:-20}
+      - FFMPEG_PRESET=${FFMPEG_PRESET:-faster}
+      - MEDIA_WORKER_MEDIA_ROOT=${MEDIA_WORKER_MEDIA_ROOT:-/app/media}
+
+      # Django settings - SECRET_KEY is also required (no default)
+      - SECRET_KEY=${SECRET_KEY:-}
+      - DEBUG=${DEBUG:-False}
+      # When DEBUG=False, settings.py enables SECURE_SSL_REDIRECT by default,
+      # which would 301 http->https and break a plain-http local/proxied run.
+      # Default it off here (edge/proxy terminates TLS, as on Coolify).
+      - SECURE_SSL_REDIRECT=${SECURE_SSL_REDIRECT:-False}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1}
+
+      # Email settings (optional)
+      - EMAIL_BACKEND=${EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@pyrunner.local}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - USE_RESEND=${USE_RESEND:-False}
+
+      # Worker settings
+      - Q_WORKERS=${Q_WORKERS:-2}
+
+      # Gunicorn settings
+      - PORT=8000
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_THREADS=${GUNICORN_THREADS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  pyrunner_data:
+    driver: local
+  pyrunner_media:
+    driver: local

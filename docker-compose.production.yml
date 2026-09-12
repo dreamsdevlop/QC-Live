@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - ./uploads:/app/uploads
+      - qc_live_media:/app/public/uploads
       - ./data:/app/data
     ports:
       - "3000:3000"
@@ -17,6 +17,9 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD_HASH=${ADMIN_PASSWORD_HASH}
+      - MEDIA_WORKER_URL=http://media-worker:8000
+      - MEDIA_WORKER_TOKEN=${MEDIA_WORKER_TOKEN}
+      - MEDIA_WORKER_MEDIA_ROOT=/app/public/uploads
     command: >
       sh -c "
         apk add --no-cache ffmpeg python3 py3-pip make g++ &&
@@ -33,3 +36,38 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  media-worker:
+    build:
+      context: ./worker
+    container_name: qc-live-media-worker
+    expose:
+      - "8000"
+    environment:
+      - SECRET_KEY=${WORKER_SECRET_KEY}
+      - ENCRYPTION_KEY=${WORKER_ENCRYPTION_KEY}
+      - MEDIA_WORKER_TOKEN=${MEDIA_WORKER_TOKEN}
+      - MEDIA_WORKER_ID=${MEDIA_WORKER_ID:-worker-01}
+      - MEDIA_WORKER_CAPACITY=${MEDIA_WORKER_CAPACITY:-1}
+      - MEDIA_MAX_DESTINATIONS=${MEDIA_MAX_DESTINATIONS:-20}
+      - FFMPEG_PRESET=${FFMPEG_PRESET:-faster}
+      - MEDIA_WORKER_MEDIA_ROOT=/app/media
+      - ALLOWED_HOSTS=media-worker,localhost,127.0.0.1
+      - DEBUG=False
+      - PORT=8000
+    volumes:
+      - qc_live_media:/app/media
+      - qc_live_worker_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  qc_live_media:
+    driver: local
+  qc_live_worker_data:
+    driver: local

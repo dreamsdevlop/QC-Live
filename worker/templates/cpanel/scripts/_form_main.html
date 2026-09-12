@@ -1,0 +1,36 @@
+<!-- Main form content: Name, Description, Code editor -->
+<div class="rounded-2xl border border-line bg-panel p-6 space-y-5">
+    <!-- Name -->
+    <div>
+        <label for="id_name" class="block text-[13px] font-medium text-text mb-1.5">{{ form.name.label }}</label>
+        {{ form.name }}
+        {% if form.name.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.name.errors.0 }}</p>{% endif %}
+    </div>
+
+    <!-- Description -->
+    <div>
+        <label for="id_description" class="block text-[13px] font-medium text-text mb-1.5">{{ form.description.label }}</label>
+        {{ form.description }}
+        {% if form.description.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.description.errors.0 }}</p>{% endif %}
+    </div>
+
+    <!-- Code editor -->
+    <div>
+        <div class="flex items-center justify-between mb-1.5">
+            <label for="id_code" class="block text-[13px] font-medium text-text">{{ form.code.label }}</label>
+            <span class="eyebrow text-faint">Python 3</span>
+        </div>
+        <!-- Hidden textarea backs the Django field; Monaco renders into the container -->
+        {{ form.code }}
+        <div class="rounded-lg border border-line overflow-hidden bg-ink">
+            <div class="flex items-center gap-1.5 px-3 h-8 border-b border-line-soft bg-panel-hi/50">
+                <span class="w-2.5 h-2.5 rounded-full bg-fail/70"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-warn/70"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-ok/70"></span>
+                <span class="ml-2 text-xs font-mono text-faint">script.py</span>
+            </div>
+            <div id="code-editor-container" class="h-[55vh] min-h-[320px] lg:h-[calc(100vh-28rem)] lg:max-h-[680px]"></div>
+        </div>
+        {% if form.code.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.code.errors.0 }}</p>{% endif %}
+    </div>
+</div>

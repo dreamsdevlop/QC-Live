@@ -1,0 +1,204 @@
+<!-- Sidebar: properties and settings -->
+<div class="space-y-4">
+
+    <!-- Execution -->
+    <section class="rounded-2xl border border-line bg-panel">
+        <div class="flex items-center gap-2 px-5 py-4 border-b border-line-soft">
+            <svg class="w-4 h-4 text-faint" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            <h3 class="text-sm font-semibold">Execution</h3>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <label for="id_environment" class="block text-[13px] font-medium text-text mb-1.5">{{ form.environment.label }}</label>
+                {{ form.environment }}
+                {% if form.environment.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.environment.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="id_timeout_seconds" class="block text-[13px] font-medium text-text mb-1.5">{{ form.timeout_seconds.label }}</label>
+                {{ form.timeout_seconds }}
+                {% if form.timeout_seconds.help_text %}<p class="mt-1.5 text-xs text-faint">{{ form.timeout_seconds.help_text }}</p>{% endif %}
+                {% if form.timeout_seconds.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.timeout_seconds.errors.0 }}</p>{% endif %}
+            </div>
+            <label class="flex items-center gap-3 pt-3 border-t border-line-soft cursor-pointer">
+                {{ form.is_enabled }}
+                <span>
+                    <span class="block text-[13px] font-medium text-text">{{ form.is_enabled.label }}</span>
+                    <span class="block text-xs text-faint">Allow this script to run, manually and on schedule.</span>
+                </span>
+            </label>
+            {% if form.is_enabled.errors %}<p class="text-xs text-fail">{{ form.is_enabled.errors.0 }}</p>{% endif %}
+        </div>
+    </section>
+
+    <!-- Tags -->
+    <section class="rounded-2xl border border-line bg-panel">
+        <div class="flex items-center gap-2 px-5 py-4 border-b border-line-soft">
+            <svg class="w-4 h-4 text-faint" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+            <h3 class="text-sm font-semibold">{{ form.tags.label }}</h3>
+        </div>
+        <div class="p-5">
+            <div class="flex flex-wrap gap-2">
+                {% for tag in available_tags %}
+                <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line cursor-pointer transition-colors hover:border-faint has-[:checked]:border-ok has-[:checked]:bg-ok/15">
+                    <input type="checkbox" name="tags" value="{{ tag.pk }}" {% if tag.pk in selected_tag_ids %}checked{% endif %} class="sr-only">
+                    <span class="w-2 h-2 rounded-full tag-dot-{{ tag.color }}"></span>
+                    <span class="text-sm text-text">{{ tag.name }}</span>
+                </label>
+                {% empty %}
+                <p class="text-sm text-muted">No tags yet. <a href="{% url 'cpanel:tag_list' %}" class="text-info hover:underline">Create tags</a></p>
+                {% endfor %}
+            </div>
+            {% if form.tags.errors %}<p class="mt-2 text-xs text-fail">{{ form.tags.errors.0 }}</p>{% endif %}
+        </div>
+    </section>
+
+    {% if schedule_form %}
+    <!-- Schedule (collapsible) -->
+    <section class="rounded-2xl border border-line bg-panel overflow-hidden">
+        <button type="button" onclick="toggleSection('schedule')" class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-panel-hi/50 transition-colors">
+            <h3 class="text-sm font-semibold flex items-center gap-2">
+                <svg class="w-4 h-4 text-faint" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Schedule
+            </h3>
+            <svg id="schedule-chevron" class="w-4 h-4 text-faint transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="schedule-content" class="px-5 pb-5 space-y-4 border-t border-line-soft pt-4">
+            <!-- Run mode -->
+            <div>
+                <label class="block text-[13px] font-medium text-text mb-2">Run mode</label>
+                <div class="space-y-2">
+                    {% for radio in schedule_form.run_mode %}
+                    <label class="group flex items-center gap-3 px-3 py-2.5 rounded-lg border border-line cursor-pointer transition-colors hover:border-faint has-[:checked]:border-ok has-[:checked]:bg-ok/10">
+                        <input type="radio" name="run_mode" value="{{ radio.data.value }}" {% if radio.data.selected %}checked{% endif %} class="sr-only" onchange="toggleScheduleOptions(this.value)">
+                        <span class="w-4 h-4 rounded-full border-2 border-line grid place-items-center transition-colors group-has-[:checked]:border-ok">
+                            <span class="w-1.5 h-1.5 rounded-full bg-ok scale-0 transition-transform group-has-[:checked]:scale-100"></span>
+                        </span>
+                        <span class="text-sm text-text">{{ radio.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% if schedule_form.run_mode.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.run_mode.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Interval -->
+            <div id="interval-options" class="{% if schedule_form.instance.run_mode != 'interval' %}hidden{% endif %}">
+                <label for="id_interval_minutes" class="block text-[13px] font-medium text-text mb-1.5">{{ schedule_form.interval_minutes.label }}</label>
+                {{ schedule_form.interval_minutes }}
+                {% if schedule_form.interval_minutes.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.interval_minutes.errors.0 }}</p>{% endif %}
+            </div>
+
+            <!-- Daily -->
+            <div id="daily-options" class="space-y-4 {% if schedule_form.instance.run_mode != 'daily' %}hidden{% endif %}">
+                <div>
+                    <label for="id_daily_times_input" class="block text-[13px] font-medium text-text mb-1.5">{{ schedule_form.daily_times_input.label }}</label>
+                    {{ schedule_form.daily_times_input }}
+                    <p class="mt-1.5 text-xs text-faint">{{ schedule_form.daily_times_input.help_text }}</p>
+                    {% if schedule_form.daily_times_input.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.daily_times_input.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="id_timezone" class="block text-[13px] font-medium text-text mb-1.5">Timezone</label>
+                    {{ schedule_form.timezone }}
+                    {% if schedule_form.timezone.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.timezone.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <!-- Weekly -->
+            <div id="weekly-options" class="space-y-4 {% if schedule_form.instance.run_mode != 'weekly' %}hidden{% endif %}">
+                <div>
+                    <label class="block text-[13px] font-medium text-text mb-2">Days of week</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        {% for checkbox in schedule_form.weekly_days_input %}
+                        <label class="flex items-center gap-2 px-3 py-2 rounded-lg border border-line cursor-pointer transition-colors hover:border-faint has-[:checked]:border-ok has-[:checked]:bg-ok/10">
+                            <input type="checkbox" name="weekly_days_input" value="{{ checkbox.data.value }}" {% if checkbox.data.selected %}checked{% endif %} class="sr-only">
+                            <span class="text-sm text-text">{{ checkbox.choice_label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% if schedule_form.weekly_days_input.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.weekly_days_input.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="id_weekly_times_input" class="block text-[13px] font-medium text-text mb-1.5">{{ schedule_form.weekly_times_input.label }}</label>
+                    {{ schedule_form.weekly_times_input }}
+                    <p class="mt-1.5 text-xs text-faint">{{ schedule_form.weekly_times_input.help_text }}</p>
+                    {% if schedule_form.weekly_times_input.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.weekly_times_input.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-[13px] font-medium text-text mb-1.5">Timezone</label>
+                    {{ schedule_form.timezone }}
+                </div>
+            </div>
+
+            <!-- Monthly -->
+            <div id="monthly-options" class="space-y-4 {% if schedule_form.instance.run_mode != 'monthly' %}hidden{% endif %}">
+                <div>
+                    <label class="block text-[13px] font-medium text-text mb-2">Days of month</label>
+                    <div class="grid grid-cols-7 gap-1">
+                        {% for checkbox in schedule_form.monthly_days_input %}
+                        <label class="flex items-center justify-center py-1.5 rounded-md border border-line cursor-pointer text-center transition-colors hover:border-faint has-[:checked]:border-ok has-[:checked]:bg-ok/10">
+                            <input type="checkbox" name="monthly_days_input" value="{{ checkbox.data.value }}" {% if checkbox.data.selected %}checked{% endif %} class="sr-only">
+                            <span class="text-xs text-text">{{ checkbox.choice_label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    {% if schedule_form.monthly_days_input.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.monthly_days_input.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label for="id_monthly_times_input" class="block text-[13px] font-medium text-text mb-1.5">{{ schedule_form.monthly_times_input.label }}</label>
+                    {{ schedule_form.monthly_times_input }}
+                    <p class="mt-1.5 text-xs text-faint">{{ schedule_form.monthly_times_input.help_text }}</p>
+                    {% if schedule_form.monthly_times_input.errors %}<p class="mt-1.5 text-xs text-fail">{{ schedule_form.monthly_times_input.errors.0 }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-[13px] font-medium text-text mb-1.5">Timezone</label>
+                    {{ schedule_form.timezone }}
+                </div>
+            </div>
+
+            <label class="flex items-center gap-3 pt-3 border-t border-line-soft cursor-pointer">
+                {{ schedule_form.is_active }}
+                <span>
+                    <span class="block text-[13px] font-medium text-text">{{ schedule_form.is_active.label }}</span>
+                    <span class="block text-xs text-faint">Run automatically on the schedule above.</span>
+                </span>
+            </label>
+            {% if schedule_form.is_active.errors %}<p class="text-xs text-fail">{{ schedule_form.is_active.errors.0 }}</p>{% endif %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Notifications (collapsible) -->
+    <section class="rounded-2xl border border-line bg-panel overflow-hidden">
+        <button type="button" onclick="toggleSection('notifications')" class="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-panel-hi/50 transition-colors">
+            <h3 class="text-sm font-semibold flex items-center gap-2">
+                <svg class="w-4 h-4 text-faint" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                Notifications
+            </h3>
+            <svg id="notifications-chevron" class="w-4 h-4 text-faint transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+        <div id="notifications-content" class="hidden px-5 pb-5 space-y-4 border-t border-line-soft pt-4">
+            <div>
+                <label for="id_notify_on" class="block text-[13px] font-medium text-text mb-1.5">{{ form.notify_on.label }}</label>
+                {{ form.notify_on }}
+                {% if form.notify_on.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.notify_on.errors.0 }}</p>{% endif %}
+            </div>
+            <div>
+                <label for="id_notify_email" class="block text-[13px] font-medium text-text mb-1.5">{{ form.notify_email.label }}</label>
+                {{ form.notify_email }}
+                {% if form.notify_email.help_text %}<p class="mt-1.5 text-xs text-faint">{{ form.notify_email.help_text }}</p>{% endif %}
+                {% if form.notify_email.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.notify_email.errors.0 }}</p>{% endif %}
+            </div>
+            <div class="rounded-lg border border-line-soft bg-panel-hi/40 p-4 space-y-3">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    {{ form.notify_webhook_enabled }}
+                    <span class="text-[13px] font-medium text-text">{{ form.notify_webhook_enabled.label }}</span>
+                </label>
+                <div>
+                    <label for="id_notify_webhook_url" class="block text-[13px] font-medium text-text mb-1.5">{{ form.notify_webhook_url.label }}</label>
+                    {{ form.notify_webhook_url }}
+                    {% if form.notify_webhook_url.help_text %}<p class="mt-1.5 text-xs text-faint">{{ form.notify_webhook_url.help_text }}</p>{% endif %}
+                    {% if form.notify_webhook_url.errors %}<p class="mt-1.5 text-xs text-fail">{{ form.notify_webhook_url.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
