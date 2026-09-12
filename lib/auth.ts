@@ -58,8 +58,8 @@ export function withSessionSsr<
 export async function validateCredentials(username: string, password: string): Promise<boolean> {
   const validUsername = config.auth.username;
   const hashedPassword = config.auth.password;
-  
-  if (username !== validUsername) {
+
+  if (typeof username !== 'string' || typeof password !== 'string' || username.trim() !== validUsername) {
     return false;
   }
 
