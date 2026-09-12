@@ -1,9 +1,8 @@
-// Support both the AUTH_* names used by the original Docker setup and the
-// ADMIN_* names used by the production deployment documentation.
+// ADMIN_* is canonical; AUTH_* remains supported for older deployments.
 export const config = {
   auth: {
-    username: process.env.AUTH_USERNAME || process.env.ADMIN_USERNAME || 'admin',
-    password: process.env.AUTH_PASSWORD || process.env.ADMIN_PASSWORD_HASH || '$2a$10$ox1/iDPv1FRYrWw3lu9fTe2NTzzLWvVCB7PSB7Orhs1OzKS/cApEW',
+    username: process.env.ADMIN_USERNAME || process.env.AUTH_USERNAME || 'admin',
+    password: process.env.ADMIN_PASSWORD_HASH || process.env.AUTH_PASSWORD || '$2a$10$ox1/iDPv1FRYrWw3lu9fTe2NTzzLWvVCB7PSB7Orhs1OzKS/cApEW',
   },
   session: {
     secret: process.env.SESSION_SECRET || 'a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456',

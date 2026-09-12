@@ -16,8 +16,8 @@ The repository pins Vercel builds to Node 24, which is the runtime currently req
 
 ```env
 SESSION_SECRET=<32-or-more-random-characters>
-AUTH_USERNAME=<admin-login>
-AUTH_PASSWORD=<bcrypt-hash>
+ADMIN_USERNAME=<admin-login>
+ADMIN_PASSWORD_HASH=<bcrypt-hash>
 SUPABASE_URL=https://rirngdknrszxkgdjcrcv.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<server-only-key>
 CHANNEL_ENCRYPTION_SECRET=<32-or-more-random-characters>
@@ -54,6 +54,10 @@ SESSION_SECRET=<generate-with-openssl-rand-base64-32>
 ADMIN_USERNAME=your-username
 ADMIN_PASSWORD_HASH=<hash-from-generate-password>
 ```
+
+`ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` are the canonical variables. Older
+deployments may use `AUTH_USERNAME` and `AUTH_PASSWORD`, but do not define both
+sets with different values because the `ADMIN_*` values take precedence.
 
 ### 3. Build and Start
 
