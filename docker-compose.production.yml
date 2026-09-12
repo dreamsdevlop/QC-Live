@@ -2,14 +2,16 @@ version: '3.8'
 
 services:
   app:
-    image: node:18-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: qc-live-production
     working_dir: /app
     volumes:
       - .:/app
       - /app/node_modules
       - qc_live_media:/app/public/uploads
-      - ./data:/app/data
+      - qc_live_app_data:/app/data
     ports:
       - "3000:3000"
     environment:
@@ -20,15 +22,14 @@ services:
       - MEDIA_WORKER_URL=http://media-worker:8000
       - MEDIA_WORKER_TOKEN=${MEDIA_WORKER_TOKEN}
       - MEDIA_WORKER_MEDIA_ROOT=/app/public/uploads
-    command: >
-      sh -c "
-        apk add --no-cache ffmpeg python3 py3-pip make g++ &&
-        pip3 install --no-cache-dir --break-system-packages yt-dlp &&
-        npm install --production &&
-        npm rebuild sqlite3 &&
-        npm run build &&
-        npm start
-      "
+      - DATABASE_PATH=/app/data/streams.db
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+      - SUPABASE_AUTH_REDIRECT_URL=${SUPABASE_AUTH_REDIRECT_URL:-https://qc-live-henna.vercel.app/auth/login}
+      - CHANNEL_ENCRYPTION_SECRET=${CHANNEL_ENCRYPTION_SECRET}
+      - APP_URL=${APP_URL:-https://qc-live-henna.vercel.app}
+    command: npm start
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
@@ -36,6 +37,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    depends_on:
+      media-worker:
+        condition: service_healthy
 
   media-worker:
     build:
@@ -67,6 +71,8 @@ services:
       start_period: 90s
 
 volumes:
+  qc_live_app_data:
+    driver: local
   qc_live_media:
     driver: local
   qc_live_worker_data:
