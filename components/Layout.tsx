@@ -23,6 +23,7 @@ export default function Layout({ children }: LayoutProps) {
   const navItems = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/videos', label: 'Videos' },
+    { href: '/broadcasts', label: 'Broadcasts' },
     { href: '/streams', label: 'Streams' },
     { href: '/channels', label: 'Channels' },
   ];

@@ -234,13 +234,13 @@ export default function DashboardPage() {
               <h2 className="text-xl font-semibold text-foreground">Start your first live stream</h2>
               <p className="text-sm text-muted-foreground mt-1">Complete these simple steps. QC Live handles the worker and stream process for you.</p>
             </div>
-            <Link href="/streams" className="inline-flex justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">Open stream setup</Link>
+            <Link href="/broadcasts" className="inline-flex justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">Open stream setup</Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5">
             {[
               { number: '1', title: 'Upload video', text: 'Choose an MP4 or supported video file.', href: '/videos' },
               { number: '2', title: 'Connect destination', text: 'Add YouTube, Twitch, Facebook, or custom RTMP.', href: '/channels' },
-              { number: '3', title: 'Start streaming', text: 'Pick your video, quality, and click Start.', href: '/streams' },
+              { number: '3', title: 'Start streaming', text: 'Pick your video, quality, and click Start.', href: '/broadcasts' },
             ].map((step) => (
               <Link href={step.href} key={step.number} className="flex gap-3 rounded-md border border-border p-4 hover:border-primary transition-colors">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">{step.number}</span>
