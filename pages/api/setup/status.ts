@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from '@/lib/auth';
+import { checkMediaWorker } from '@/lib/mediaWorker';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
@@ -15,13 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       database = response.ok;
     } catch { database = false; }
   }
-  const mediaWorkerConfigured = Boolean(process.env.MEDIA_WORKER_URL && process.env.MEDIA_WORKER_TOKEN);
+  const worker = await checkMediaWorker();
+  const mediaWorkerConfigured = worker.reachable;
   const supabaseConfigured = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
   const productionUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://qc-live-henna.vercel.app';
 
   return res.status(200).json({
     ready: database && mediaWorkerConfigured,
-    checks: { database, mediaWorkerConfigured, supabaseConfigured, productionUrl },
+    checks: { database, mediaWorkerConfigured, workerConfigured: worker.configured, workerReachable: worker.reachable, workerError: worker.error, supabaseConfigured, productionUrl },
     steps: [
       { id: 'account', label: 'Account created', complete: true },
       { id: 'video', label: 'Upload a video', complete: false, href: '/videos' },

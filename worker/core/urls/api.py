@@ -13,6 +13,7 @@ from core.views.api import (
 from core.views.media import (
     create_media_job,
     heartbeat_view,
+    health_view,
     media_job_status,
     stop_media_job,
 )
@@ -21,6 +22,7 @@ app_name = "api"
 
 urlpatterns = [
     # Private QC Live media-worker endpoints. All require MEDIA_WORKER_TOKEN.
+    path("media/health/", health_view, name="media_health"),
     path("media/heartbeat/", heartbeat_view, name="media_heartbeat"),
     path("media/jobs/", create_media_job, name="create_media_job"),
     path("media/jobs/<str:job_id>/", media_job_status, name="media_job_status"),

@@ -17,6 +17,18 @@ def _auth(request):
     return None
 
 
+@require_http_methods(["GET"])
+def health_view(request):
+    unauthorized = _auth(request)
+    if unauthorized:
+        return unauthorized
+    return JsonResponse({
+        "status": "healthy",
+        "workerId": os.environ.get("MEDIA_WORKER_ID", "worker"),
+        "ffmpeg": True,
+    })
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def heartbeat_view(request):

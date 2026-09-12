@@ -250,7 +250,7 @@ export default function DashboardPage() {
           </div>
           {setup && !setup.ready && (
             <div className="mt-4 rounded-md border border-orange-300 bg-orange-50 dark:bg-orange-900/20 p-3 text-sm text-orange-800 dark:text-orange-200">
-              The deployment still needs backend configuration before live streaming can run. Ask the administrator to configure the database and PyRunner media worker environment variables.
+              {!setup.checks?.database ? 'Supabase is not reachable. ' : ''}{!setup.checks?.workerReachable ? 'The persistent PyRunner/FFmpeg worker is not reachable from Vercel. Configure MEDIA_WORKER_URL and MEDIA_WORKER_TOKEN, deploy the worker with FFmpeg, and make sure its /api/v1/media/health/ endpoint is reachable.' : ''}
             </div>
           )}
         </div>

@@ -7,6 +7,17 @@ export function isMediaWorkerConfigured() {
   return Boolean(workerUrl && workerToken);
 }
 
+export async function checkMediaWorker() {
+  if (!workerUrl || !workerToken) return { configured: false, reachable: false, error: 'MEDIA_WORKER_URL and MEDIA_WORKER_TOKEN are required' };
+  try {
+    const response = await fetch(`${workerUrl}/api/v1/media/health/`, { headers: headers(), signal: AbortSignal.timeout(5000) });
+    const result = await response.json().catch(() => ({}));
+    return { configured: true, reachable: response.ok, workerId: result.workerId, error: response.ok ? undefined : result.error || `Worker returned ${response.status}` };
+  } catch (error: any) {
+    return { configured: true, reachable: false, error: error?.message || 'Worker is unreachable' };
+  }
+}
+
 function headers() {
   if (!workerToken) throw new Error('MEDIA_WORKER_TOKEN is not configured');
   return {
