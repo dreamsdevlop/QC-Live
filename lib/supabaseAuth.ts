@@ -24,3 +24,27 @@ export async function signUpWithSupabase(email: string, password: string, displa
 export async function signInWithSupabase(email: string, password: string) {
   return authRequest('token?grant_type=password', { email, password });
 }
+
+export async function sendMagicLink(email: string, redirectTo: string) {
+  // create_user=false prevents arbitrary visitors from creating accounts through
+  // the login form; an administrator must provision the Supabase user first.
+  return authRequest('otp', {
+    email,
+    create_user: false,
+    options: { email_redirect_to: redirectTo },
+  });
+}
+
+export async function getSupabaseUser(accessToken: string) {
+  if (!isSupabaseAuthConfigured()) throw new Error('Supabase Auth is not configured');
+  const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { apikey: anonKey as string, Authorization: `Bearer ${accessToken}` },
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.email) throw new Error('Invalid or expired magic link');
+  return payload as { id: string; email: string };
+}
+
+export function getMagicLinkRedirectUrl(origin: string) {
+  return process.env.SUPABASE_AUTH_REDIRECT_URL || `${origin}/auth/login`;
+}

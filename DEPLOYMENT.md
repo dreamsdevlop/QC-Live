@@ -19,6 +19,8 @@ SESSION_SECRET=<32-or-more-random-characters>
 ADMIN_USERNAME=<admin-login>
 ADMIN_PASSWORD_HASH=<bcrypt-hash>
 SUPABASE_URL=https://rirngdknrszxkgdjcrcv.supabase.co
+SUPABASE_ANON_KEY=<public-anon-key>
+SUPABASE_AUTH_REDIRECT_URL=https://your-domain.example.com/auth/login
 SUPABASE_SERVICE_ROLE_KEY=<server-only-key>
 CHANNEL_ENCRYPTION_SECRET=<32-or-more-random-characters>
 ```
@@ -58,6 +60,13 @@ ADMIN_PASSWORD_HASH=<hash-from-generate-password>
 `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` are the canonical variables. Older
 deployments may use `AUTH_USERNAME` and `AUTH_PASSWORD`, but do not define both
 sets with different values because the `ADMIN_*` values take precedence.
+
+To enable passwordless login, add `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the
+deployment, add the exact `SUPABASE_AUTH_REDIRECT_URL` to Supabase Auth's
+allowed redirect URLs, and provision the permitted user in Supabase Auth. The
+login page then sends a single-use, expiring email link. The link is exchanged
+server-side for the normal QC Live session; no Supabase access token is stored
+in the QC Live session cookie.
 
 ### 3. Build and Start
 
