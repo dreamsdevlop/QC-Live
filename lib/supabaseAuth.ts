@@ -57,6 +57,18 @@ export async function getSupabaseUser(accessToken: string) {
   return payload as { id: string; email: string };
 }
 
+export async function exchangeOAuthCode(code: string) {
+  if (!isSupabaseAuthConfigured()) throw new Error('Supabase Auth is not configured');
+  const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=authorization_code`, {
+    method: 'POST',
+    headers: { apikey: anonKey as string, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.access_token) throw new Error(payload.error_description || payload.msg || 'Unable to complete Google sign-in');
+  return payload as { access_token: string; user?: { email?: string } };
+}
+
 export function getMagicLinkRedirectUrl(_origin?: string) {
   return process.env.SUPABASE_AUTH_REDIRECT_URL || 'https://qc-live-henna.vercel.app/auth/login';
 }

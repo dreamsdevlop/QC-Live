@@ -13,6 +13,15 @@ export default function LoginPage() {
   const [isMagicLoading, setIsMagicLoading] = useState(false);
 
   useEffect(() => {
+    const oauthCode = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('code') : null;
+    if (oauthCode) {
+      setIsMagicLoading(true);
+      axios.post('/api/auth/google/callback', { code: oauthCode })
+        .then(() => { window.history.replaceState({}, document.title, window.location.pathname); toast.success('Google login successful!'); router.push('/dashboard'); })
+        .catch((error: any) => { toast.error(error.response?.data?.error || 'Google sign-in could not be completed.'); window.history.replaceState({}, document.title, window.location.pathname); })
+        .finally(() => setIsMagicLoading(false));
+      return;
+    }
     const oauthError = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('error_description') : null;
     if (oauthError) {
       toast.error(`Google sign-in failed: ${oauthError.replace(/\+/g, ' ')}`);
