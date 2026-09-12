@@ -61,6 +61,20 @@ ADMIN_PASSWORD_HASH=<hash-from-generate-password>
 deployments may use `AUTH_USERNAME` and `AUTH_PASSWORD`, but do not define both
 sets with different values because the `ADMIN_*` values take precedence.
 
+For the dedicated PyRunner media worker, configure these server-side variables
+in QC Live:
+
+```env
+MEDIA_WORKER_URL=https://your-private-worker.example.com
+MEDIA_WORKER_TOKEN=<long-random-worker-token>
+MEDIA_WORKER_MEDIA_ROOT=/srv/qc-live-media
+```
+
+Configure the same token in PyRunner as `MEDIA_WORKER_TOKEN`. The worker must
+have FFmpeg installed, durable media access, automatic restart, and sufficient
+CPU, memory, disk, and outbound bandwidth. Do not expose the worker API to the
+public internet without network controls and token authentication.
+
 To enable passwordless login, add `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the
 deployment, add the exact `SUPABASE_AUTH_REDIRECT_URL` to Supabase Auth's
 allowed redirect URLs, and provision the permitted user in Supabase Auth. The
