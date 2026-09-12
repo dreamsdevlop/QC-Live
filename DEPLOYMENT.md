@@ -99,6 +99,21 @@ Keep `SUPABASE_AUTH_REDIRECT_URL` set to the production URL. The preview URL is
 allowed for testing, but magic links intentionally return to the canonical
 production login unless the preview environment overrides that variable.
 
+### Google login
+
+In Supabase, open **Authentication → Providers → Google**, enable the provider,
+and enter the Google OAuth client ID and client secret. In Google Cloud Console,
+add the Supabase callback URL shown on that provider page as an authorized
+redirect URI. QC Live then starts Google OAuth at `/api/auth/google/start` and
+returns the browser to:
+
+```text
+https://qc-live-henna.vercel.app/auth/login
+```
+
+The login page exchanges the returned Supabase access token for the normal QC
+Live session and redirects the user to `/dashboard`.
+
 ### 3. Build and Start
 
 ```bash

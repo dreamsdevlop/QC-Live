@@ -32,6 +32,8 @@ export default function SignupPage() {
   return <div className="min-h-screen flex items-center justify-center bg-background px-4">
     <form onSubmit={submit} className="w-full max-w-md space-y-5 bg-card border border-border rounded-lg p-8">
       <div><h1 className="text-3xl font-bold text-foreground">Create QC Live account</h1><p className="text-sm text-muted-foreground mt-2">Use your account to save channels and manage live jobs.</p></div>
+      <a href="/api/auth/google/start" className="w-full py-2 rounded-md border border-border text-foreground hover:bg-muted flex items-center justify-center gap-2"><span className="font-semibold">G</span> Sign up with Google</a>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px bg-border flex-1" /><span>or use email</span><span className="h-px bg-border flex-1" /></div>
       <input placeholder="Display name (optional)" value={form.displayName} onChange={e => setForm({ ...form, displayName: e.target.value })} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground" />
       <input required type="email" autoComplete="email" placeholder="Email address" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground" />
       <input required minLength={8} type="password" autoComplete="new-password" placeholder="Password (8+ characters)" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground" />

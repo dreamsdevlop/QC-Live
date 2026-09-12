@@ -60,3 +60,9 @@ export async function getSupabaseUser(accessToken: string) {
 export function getMagicLinkRedirectUrl(_origin?: string) {
   return process.env.SUPABASE_AUTH_REDIRECT_URL || 'https://qc-live-henna.vercel.app/auth/login';
 }
+
+export function getGoogleOAuthUrl() {
+  if (!supabaseUrl || !anonKey) throw new Error('Supabase Auth is not configured');
+  const redirectTo = getMagicLinkRedirectUrl();
+  return `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirectTo)}`;
+}

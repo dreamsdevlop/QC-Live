@@ -63,6 +63,10 @@ export default function LoginPage() {
           <p className="mt-2 text-center text-sm text-muted-foreground">Sign in securely to manage your streams</p>
         </div>
 
+        <a href="/api/auth/google/start" className="w-full py-2 px-4 rounded-md border border-border text-foreground hover:bg-muted flex items-center justify-center gap-2">
+          <span className="font-semibold">G</span> Continue with Google
+        </a>
+
         <form className="space-y-4" onSubmit={requestMagicLink}>
           <div>
             <h3 className="text-lg font-medium text-foreground">Sign in with email</h3>
