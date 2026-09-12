@@ -21,6 +21,18 @@ export async function signUpWithSupabase(email: string, password: string, displa
   return authRequest('signup', { email, password, data: { display_name: displayName || email.split('@')[0] } });
 }
 
+export async function createConfirmedUserWithSupabase(email: string, password: string, displayName?: string) {
+  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) throw new Error('Supabase service role is not configured');
+  const response = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+    method: 'POST',
+    headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { display_name: displayName || email.split('@')[0] } }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok && response.status !== 422) throw new Error(payload.msg || payload.message || 'Could not create account');
+  return signInWithSupabase(email, password);
+}
+
 export async function signInWithSupabase(email: string, password: string) {
   return authRequest('token?grant_type=password', { email, password });
 }
