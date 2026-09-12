@@ -219,3 +219,24 @@ def execute_job(job_id: str):
     job.lease_expires_at = None
     job.save(update_fields=["status", "finished_at", "lease_expires_at", "updated_at"])
     return {"success": not failed, "job_id": job.id, "status": job.status}
+
+
+# Keep the process runner above as the single-attempt primitive, then add
+# bounded destination-isolated recovery for transient RTMP failures.
+_run_destination_once = _run_destination
+
+
+def _run_destination(job: MediaJob, run: DestinationRun, destination: dict, payload: dict):
+    max_attempts = max(1, min(int(payload.get("maxRetries", 3)) + 1, 5))
+    delays = [10, 30, 120]
+    for attempt in range(max_attempts):
+        run.retry_count = attempt
+        if attempt:
+            run.status = DestinationRun.Status.RETRYING
+            run.save(update_fields=["retry_count", "status", "updated_at"])
+            time.sleep(delays[min(attempt - 1, len(delays) - 1)])
+        _run_destination_once(job, run, destination, payload)
+        run.refresh_from_db()
+        if run.status == DestinationRun.Status.COMPLETED:
+            return
+    logger.error("Destination %s exhausted retries for job %s", run.destination_id, job.id)

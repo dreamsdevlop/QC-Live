@@ -117,3 +117,21 @@ export async function stopBroadcast(ownerKey: string, id: string) {
   await updateBroadcast(id, { status: 'stopping', desired_state: 'stopped' });
   return { id, status: 'stopping' };
 }
+
+export async function createSchedule(ownerKey: string, input: {
+  title: string; sourcePath?: string; sourceUrl?: string; quality: '720p' | '1080p';
+  loopEnabled: boolean; channelIds: string[]; recurrence: 'once' | 'daily' | 'weekly'; timezone: string; startsAt: string;
+}) {
+  if (!input.sourcePath && !input.sourceUrl) throw new Error('A source video is required');
+  if (!input.channelIds.length) throw new Error('At least one destination is required');
+  const rows = await request('qc_live_broadcast_schedules', {
+    method: 'POST',
+    body: JSON.stringify({ owner_key: ownerKey, title: input.title.slice(0, 160), source_object_key: input.sourcePath || null, source_url: input.sourceUrl || null, quality: input.quality, loop_enabled: input.loopEnabled, channel_ids: input.channelIds, recurrence: input.recurrence, timezone: input.timezone, starts_at: input.startsAt, next_run_at: input.startsAt, enabled: true }),
+  });
+  return (rows as unknown[])[0];
+}
+
+export async function listSchedules(ownerKey: string) {
+  const query = new URLSearchParams({ owner_key: `eq.${ownerKey}`, select: 'id,title,quality,recurrence,timezone,starts_at,next_run_at,enabled,last_error', order: 'next_run_at.asc', limit: '50' });
+  return request(`qc_live_broadcast_schedules?${query.toString()}`);
+}
