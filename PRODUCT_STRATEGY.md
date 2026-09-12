@@ -184,6 +184,22 @@ Possible deliverables:
 11. Add audit events for authentication, destination changes, schedule changes, and broadcast actions.
 12. Add end-to-end tests for authentication, ownership, schedule idempotency, and failed destinations.
 
+## PyRunner comparison and adopted patterns
+
+PyRunner is a general-purpose Python execution platform, not a specialized
+video-transcoding or live-streaming worker. Its strongest reusable ideas are
+worker heartbeats, durable task states, isolated process groups, bounded output,
+secret masking, and safe retry/idempotency behavior. QC Live adopts those
+patterns in its existing Node.js/FFmpeg architecture rather than merging
+PyRunner's Django application, models, or runtime.
+
+QC Live's FFmpeg path now uses isolated process groups, redacts RTMP URLs from
+logs, bounds retained error output, uses higher 720p/1080p bitrate presets,
+preserves aspect ratio with padding, enforces H.264/AAC compatibility settings,
+and supports an operator-controlled `FFMPEG_PRESET`. Higher quality increases
+CPU and outbound bandwidth requirements, so the scheduler must eventually
+perform capacity checks before allowing a high-quality broadcast.
+
 ## Success metrics
 
 - Time from signup to first successful broadcast.

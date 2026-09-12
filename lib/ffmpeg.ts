@@ -16,6 +16,7 @@ interface StreamProcess {
 }
 
 const activeStreams = new Map<number, StreamProcess>();
+const MAX_ERROR_OUTPUT_BYTES = 256_000;
 
 export interface StreamOptions {
   videoPath: string;
@@ -27,15 +28,15 @@ export interface StreamOptions {
 const qualityPresets = {
   '720p': {
     resolution: '1280:720',
-    videoBitrate: '2000k',
-    maxBitrate: '2500k',
-    bufferSize: '5000k',
+    videoBitrate: '3000k',
+    maxBitrate: '3500k',
+    bufferSize: '7000k',
   },
   '1080p': {
     resolution: '1920:1080',
-    videoBitrate: '3500k',
-    maxBitrate: '4000k',
-    bufferSize: '8000k',
+    videoBitrate: '6000k',
+    maxBitrate: '7000k',
+    bufferSize: '14000k',
   },
 };
 
@@ -50,16 +51,22 @@ export async function startStream(streamId: number, options: StreamOptions): Pro
     '-metadata', `comment=streamid:${streamId}`,
     '-metadata', `title=Stream ${streamId}`,
     '-c:v', 'libx264',
-    '-preset', 'veryfast',
+    '-preset', process.env.FFMPEG_PRESET || 'faster',
     '-tune', 'zerolatency',
+    '-profile:v', 'high',
+    '-pix_fmt', 'yuv420p',
     '-b:v', preset.videoBitrate,
     '-maxrate', preset.maxBitrate,
     '-bufsize', preset.bufferSize,
-    '-vf', `scale=${preset.resolution}`,
+    '-vf', `scale=${preset.resolution}:force_original_aspect_ratio=decrease,pad=${preset.resolution}:(ow-iw)/2:(oh-ih)/2:color=black`,
     '-r', '30',
+    '-g', '60',
+    '-keyint_min', '60',
+    '-sc_threshold', '0',
     '-c:a', 'aac',
     '-b:a', '128k',
-    '-ar', '44100',
+    '-ar', '48000',
+    '-ac', '2',
     '-f', 'flv',
     options.rtmpUrl,
   ];
@@ -84,7 +91,9 @@ export async function startStream(streamId: number, options: StreamOptions): Pro
   }
   
   const ffmpegProcess = spawn(ffmpegPath, args, {
-    detached: false,
+    // Keep each broadcast in its own process group so stopping one stream
+    // cannot terminate the worker or another broadcast.
+    detached: process.platform !== 'win32',
     stdio: ['ignore', 'pipe', 'pipe']
   });
   
@@ -153,9 +162,9 @@ export async function startStream(streamId: number, options: StreamOptions): Pro
   let errorOutput = '';
   
   ffmpegProcess.stderr?.on('data', (data) => {
-    const output = data.toString();
+    const output = data.toString().replace(options.rtmpUrl, '[RTMP_REDACTED]');
     console.log(`Stream ${streamId} FFmpeg:`, output);
-    errorOutput += output;
+    errorOutput = (errorOutput + output).slice(-MAX_ERROR_OUTPUT_BYTES);
     
     // Update stream statistics
     updateStreamStats(streamId, output);
@@ -217,9 +226,13 @@ export async function stopStream(streamId: number, caller?: string): Promise<voi
   // Method 1: Try to kill using the ChildProcess object
   if (streamProcess?.process && !streamProcess.process.killed) {
     try {
-      streamProcess.process.kill('SIGKILL');
+      if (process.platform !== 'win32' && streamProcess.process.pid) {
+        process.kill(-streamProcess.process.pid, 'SIGKILL');
+      } else {
+        streamProcess.process.kill('SIGKILL');
+      }
       killed = true;
-      console.log(`Killed stream ${streamId} using ChildProcess.kill()`);
+      console.log(`Killed stream ${streamId} process group`);
     } catch (e) {
       console.log('ChildProcess.kill() failed:', e);
     }
