@@ -20,7 +20,7 @@ ADMIN_USERNAME=<admin-login>
 ADMIN_PASSWORD_HASH=<bcrypt-hash>
 SUPABASE_URL=https://rirngdknrszxkgdjcrcv.supabase.co
 SUPABASE_ANON_KEY=<public-anon-key>
-SUPABASE_AUTH_REDIRECT_URL=https://your-domain.example.com/auth/login
+SUPABASE_AUTH_REDIRECT_URL=https://qc-live-henna.vercel.app/auth/login
 SUPABASE_SERVICE_ROLE_KEY=<server-only-key>
 CHANNEL_ENCRYPTION_SECRET=<32-or-more-random-characters>
 ```
@@ -81,6 +81,23 @@ allowed redirect URLs, and provision the permitted user in Supabase Auth. The
 login page then sends a single-use, expiring email link. The link is exchanged
 server-side for the normal QC Live session; no Supabase access token is stored
 in the QC Live session cookie.
+
+Use these exact Supabase Auth settings:
+
+```text
+Site URL:
+https://qc-live-henna.vercel.app
+
+Allowed redirect URL:
+https://qc-live-henna.vercel.app/auth/login
+
+Preview allowed redirect URL:
+https://qc-live-4ehhhcxf0-haseeb-ur-rehmans-projects-d3795573.vercel.app/auth/login
+```
+
+Keep `SUPABASE_AUTH_REDIRECT_URL` set to the production URL. The preview URL is
+allowed for testing, but magic links intentionally return to the canonical
+production login unless the preview environment overrides that variable.
 
 ### 3. Build and Start
 

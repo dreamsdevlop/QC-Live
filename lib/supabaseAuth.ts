@@ -26,11 +26,11 @@ export async function signInWithSupabase(email: string, password: string) {
 }
 
 export async function sendMagicLink(email: string, redirectTo: string) {
-  // create_user=false prevents arbitrary visitors from creating accounts through
-  // the login form; an administrator must provision the Supabase user first.
+  // Passwordless onboarding: Supabase creates the user when the email is not
+  // registered yet, then sends the same single-use confirmation link.
   return authRequest('otp', {
     email,
-    create_user: false,
+    create_user: true,
     options: { email_redirect_to: redirectTo },
   });
 }
@@ -46,5 +46,5 @@ export async function getSupabaseUser(accessToken: string) {
 }
 
 export function getMagicLinkRedirectUrl(origin: string) {
-  return process.env.SUPABASE_AUTH_REDIRECT_URL || `${origin}/auth/login`;
+  return process.env.SUPABASE_AUTH_REDIRECT_URL || 'https://qc-live-henna.vercel.app/auth/login';
 }
