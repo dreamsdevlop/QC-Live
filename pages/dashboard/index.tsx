@@ -135,12 +135,14 @@ export default function DashboardPage() {
   });
   const [systemStats, setSystemStats] = useState<SystemStats | null>(null);
   const [streamStats, setStreamStats] = useState<StreamStatsData | null>(null);
+  const [setup, setSetup] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
     fetchSystemStats();
     fetchStreamStats();
+    axios.get('/api/setup/status').then((response) => setSetup(response.data)).catch(() => undefined);
     const interval = setInterval(() => {
       fetchDashboardData();
       fetchSystemStats();
@@ -224,6 +226,33 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">
             Welcome to QC Live - Professional Streaming Application
           </p>
+        </div>
+
+        <div className="bg-card border border-border rounded-lg p-6 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Start your first live stream</h2>
+              <p className="text-sm text-muted-foreground mt-1">Complete these simple steps. QC Live handles the worker and stream process for you.</p>
+            </div>
+            <Link href="/streams" className="inline-flex justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">Open stream setup</Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-5">
+            {[
+              { number: '1', title: 'Upload video', text: 'Choose an MP4 or supported video file.', href: '/videos' },
+              { number: '2', title: 'Connect destination', text: 'Add YouTube, Twitch, Facebook, or custom RTMP.', href: '/channels' },
+              { number: '3', title: 'Start streaming', text: 'Pick your video, quality, and click Start.', href: '/streams' },
+            ].map((step) => (
+              <Link href={step.href} key={step.number} className="flex gap-3 rounded-md border border-border p-4 hover:border-primary transition-colors">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold">{step.number}</span>
+                <span><span className="block font-medium text-foreground">{step.title}</span><span className="block text-xs text-muted-foreground mt-1">{step.text}</span></span>
+              </Link>
+            ))}
+          </div>
+          {setup && !setup.ready && (
+            <div className="mt-4 rounded-md border border-orange-300 bg-orange-50 dark:bg-orange-900/20 p-3 text-sm text-orange-800 dark:text-orange-200">
+              The deployment still needs backend configuration before live streaming can run. Ask the administrator to configure the database and PyRunner media worker environment variables.
+            </div>
+          )}
         </div>
 
         {isLoading ? (
