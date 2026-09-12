@@ -13,6 +13,11 @@ export default function LoginPage() {
   const [isMagicLoading, setIsMagicLoading] = useState(false);
 
   useEffect(() => {
+    const oauthError = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('error_description') : null;
+    if (oauthError) {
+      toast.error(`Google sign-in failed: ${oauthError.replace(/\+/g, ' ')}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
     const accessToken = typeof window !== 'undefined'
       ? new URLSearchParams(window.location.hash.slice(1)).get('access_token')
       : null;
