@@ -45,6 +45,6 @@ export async function getSupabaseUser(accessToken: string) {
   return payload as { id: string; email: string };
 }
 
-export function getMagicLinkRedirectUrl(origin: string) {
+export function getMagicLinkRedirectUrl(_origin?: string) {
   return process.env.SUPABASE_AUTH_REDIRECT_URL || 'https://qc-live-henna.vercel.app/auth/login';
 }

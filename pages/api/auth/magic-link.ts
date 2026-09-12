@@ -10,12 +10,10 @@ export default async function magicLinkRoute(req: NextApiRequest, res: NextApiRe
   const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: 'Enter a valid email address' });
 
-  const forwardedProto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0];
-  const forwardedHost = String(req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000').split(',')[0];
-  const origin = `${forwardedProto}://${forwardedHost}`;
-
   try {
-    await sendMagicLink(email, getMagicLinkRedirectUrl(origin));
+    // Never derive this from Host/x-forwarded-host: local development hosts
+    // otherwise produce localhost callbacks that fail in Supabase production.
+    await sendMagicLink(email, getMagicLinkRedirectUrl());
     return res.status(200).json({ success: true, message: 'If that account exists, a sign-in link has been sent.' });
   } catch (error: any) {
     // Avoid revealing whether an email is registered.
